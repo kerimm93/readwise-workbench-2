@@ -2,7 +2,7 @@
 // App shell only. No API, localhost, credentials, or application-state caching.
 const ROOT = new URL('./', self.location.href);
 const PREFIX = 'rww2-shell-' + ROOT.pathname + '-';
-const CACHE = PREFIX + '2.0.0';
+const CACHE = PREFIX + '2.0.1';
 const ASSETS = ['index.html', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'].map(p => new URL(p, ROOT).href);
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));

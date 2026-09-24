@@ -1,8 +1,16 @@
-# Readwise Workbench 2.0.0
+# Readwise Workbench 2.0.1
 
 **Verstehen zuerst.** Neue Highlights sammeln, einen kleinen Ausschnitt dialogisch verarbeiten, bewusst entscheiden und Ergebnisse sauber zurückbringen.
 
 Erste eigenständige, testbare Version nach `readwise-workbench-vnext-skizze.md`. Kein Umbau und keine automatische Migration der bisherigen Workbench. Kein Framework, kein Build-Schritt, kein eigener Server notwendig.
+
+## Update von 2.0.0
+
+Die Dateien im **bestehenden 2.0-Repository** ersetzen, insbesondere `index.html` und `sw.js`. Dieselbe App-Adresse verwenden, alle Tabs/Fenster der App schließen und neu öffnen. Unten steht anschließend `v2.0.1`. Kandidaten, Sessions und Verbindungseinstellungen bleiben erhalten; Browserdaten nicht löschen.
+
+Neu im Eingang: eine **Sortierauswahl**, die pro Gerät gespeichert wird. Standard ist „Neueste Highlights zuerst“. Alternativ stehen „Älteste Highlights zuerst“, „Zuletzt importiert zuerst“ und „Wieder aufgegriffen zuerst“ bereit. Schnellauswahl und neue Sessions folgen dieser Reihenfolge; ausgewählte IDs bleiben beim Umsortieren erhalten. Bereits angelegte Sessions behalten ihre feste Reihenfolge.
+
+Highlight-Sortierung nutzt `highlighted_at`, ersatzweise `created_at`; ohne gültiges Datum steht ein Highlight am Ende. Import-Sortierung nutzt die erste Aufnahme in die Workbench, bei gleichem Zeitpunkt das neueste Highlight-Datum. „Wieder aufgegriffen“ stellt erneut aufgegriffene Kandidaten voran und sortiert innerhalb beider Gruppen nach neuestem Highlight-Datum. Highlight- und Importdatum stehen bei jedem Kandidaten. Die Sortierauswahl ist eine lokale Ansichtseinstellung und wird nicht über Gist übertragen.
 
 ## Installieren
 

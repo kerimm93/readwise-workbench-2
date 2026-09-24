@@ -1,6 +1,41 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {app,source,seed,session,payload,handoff,html}=require('./helpers.cjs');
 const serial=x=>JSON.parse(JSON.stringify(x));
+test('inbox sorts actual highlight timestamps, import times and resurfaced candidates without changing state',()=>{
+ const a=app();seed(a,['10','20','30','40','50'].map(id=>source(id)));
+ const dates={10:'2026-09-23T12:00:00+02:00',20:'2026-09-23T09:00:00Z',30:'2019-01-01T00:00:00Z',40:null,50:null};
+ for(const c of a.S.candidates)c.source.highlighted_at=dates[c.id];
+ a.candidate('50').source.created_at=null;
+ a.candidate('30').generation=1;
+ a.candidate('20').first_seen_at='2026-09-24T11:00:00Z';
+ const before=serial(a.S),ids=()=>serial(a.eligible().map(c=>c.id));
+ assert.equal(a.UI.inboxSort,'newest');assert.deepEqual(ids(),['10','20','40','30','50']);
+ a.setInboxSort('oldest');assert.deepEqual(ids(),['30','40','20','10','50']);
+ a.setInboxSort('imported');assert.deepEqual(ids(),['20','10','40','30','50']);
+ a.setInboxSort('resurfaced');assert.deepEqual(ids(),['30','10','20','40','50']);
+ a.setInboxSort('unknown-old-preference');assert.deepEqual(ids(),['10','20','40','30','50']);
+ delete a.UI.inboxSort;assert.deepEqual(ids(),['10','20','40','30','50']);
+ assert.deepEqual(serial(a.S),before);
+});
+test('quick selection follows filtered inbox order and sorting preserves selected IDs and local preference',()=>{
+ const a=app();seed(a,[source('1',{title:'Keep',highlighted_at:'2026-09-01T00:00:00Z'}),source('2',{title:'Keep'}),source('3',{title:'Other'}),source('4',{title:'Keep'})]);
+ const done=session(a,['4']);a.S=a.applyHandoff(a.S,done.id,handoff(a,done,'discard')).state;
+ session(a,['3']);a.UI.filter='keep';a.setInboxSort('oldest');a.pick(2);
+ assert.deepEqual(serial(a.UI.selected),['1','2']);
+ a.setInboxSort('newest');assert.deepEqual(serial(a.UI.selected),['1','2']);
+ assert.equal(JSON.parse(a.localStorage.getItem(a.UI_KEY)).inboxSort,'newest');
+ const markup=a.renderInbox();assert.ok(markup.indexOf('Highlight 2 auswählen')<markup.indexOf('Highlight 1 auswählen'));
+ a.pick(1);assert.deepEqual(serial(a.UI.selected),['2']);
+ assert.deepEqual(serial(a.eligible().map(c=>c.id)),['2','1']);
+});
+test('new session follows chosen sort, while an existing session snapshot stays unchanged',async()=>{
+ const a=app();seed(a,[source('1',{highlighted_at:'2026-09-01T00:00:00Z'}),source('2'),source('3')]);
+ const existing=serial(session(a,['3']));a.UI.selected=['2','1'];a.setInboxSort('oldest');
+ a.commit=async next=>{a.validateState(next);a.S=next;};await a.startSession();
+ assert.deepEqual(serial(a.S.sessions.at(-1).items.map(i=>i.highlight_id)),['1','2']);
+ a.setInboxSort('newest');assert.deepEqual(serial(a.S.sessions[0]),existing);
+ assert.deepEqual(serial(a.S.sessions.at(-1).items.map(i=>i.highlight_id)),['1','2']);
+});
 test('discovery: new untagged and old exact Workbench only',()=>{const a=app();seed(a,[source('1'),source('2',{created_at:'2020-01-01T00:00:00Z',tags:['Workbench']}),source('3',{created_at:'2020-01-01T00:00:00Z',tags:['make-anki']}),source('4',{created_at:'2020-01-01T00:00:00Z',tags:['workbench']}),source('5',{deleted:true})]);assert.deepEqual(serial(a.S.candidates.map(c=>c.id)),['1','2']);});
 test('persistent Workbench does not reopen; removal + readdition does',()=>{const a=app();const src=source('1',{tags:['Workbench']});seed(a,[src]);let s=session(a);a.S=a.applyHandoff(a.S,s.id,handoff(a,s,'discard')).state;seed(a,[src]);assert.equal(a.S.candidates[0].generation,0);assert.equal(a.candidateStatus(a.S.candidates[0]),'discarded');seed(a,[{...src,tags:[]}]);seed(a,[src]);assert.equal(a.S.candidates[0].generation,1);assert.equal(a.candidateStatus(a.S.candidates[0]),'resurfaced');});
 test('active session reserves exact IDs and freezes sources',()=>{const a=app();seed(a);const s=session(a);assert.throws(()=>session(a),/reserviert/);seed(a,[source('101',{text:'Neuer Text',updated_at:'2026-09-24T13:00:00Z'})]);assert.notEqual(a.S.candidates[0].source.text,s.items[0].source.text);assert.match(a.buildStartPrompt(s),/Meine erste Verbindung/);assert.match(a.buildStartPrompt(s),new RegExp(s.id));assert.doesNotMatch(a.buildStartPrompt(s),/\{\{COUNT\}\}/);assert.match(a.buildHandoffPrompt(s),/expected_highlight_ids/);});
