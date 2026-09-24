@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "Readwise Workbench 2.0",
+  "short_name": "Workbench 2",
+  "description": "Verstehen zuerst. Readwise-Highlights dialogisch verarbeiten und bewusst weiterführen.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4ECDC",
+  "theme_color": "#F4ECDC",
+  "icons": [
+    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"icons/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ]
+}
