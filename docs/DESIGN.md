@@ -14,4 +14,6 @@ Fünf Bereiche:
 4. Verlauf: Entscheidungen und tatsächliche Zielreferenzen.
 5. Einstellungen: nur lokale Verbindungen, manueller Abgleich, Recovery.
 
+Im Eingang steht eine beschriftete Sortierauswahl oberhalb der Suche. Standard: neueste Highlights zuerst; alternativ älteste Highlights, letzter Import oder wieder aufgegriffene Kandidaten. Schnellauswahl und neue Sessionreihenfolge stimmen mit der Anzeige überein. Umsortieren erhält ausgewählte IDs, bestehende Sessions bleiben unverändert. Highlight- und Importdatum sind getrennt sichtbar. Die Auswahl ist lokal pro Gerät gespeichert.
+
 Ein Hauptschritt pro Panel; technische Rohdaten und Templates unter Details. Inhalte nicht als HTML ausführen. Quellenlinks öffnen getrennt mit `noopener noreferrer`. Mutierende Netzwerk-/Speicheraktionen sperren die Arbeitsfläche während des Vorgangs. Explizite Form-Speicheraktionen statt verstecktem Autosave; ungespeicherte Felder bleiben bis Tab-Ende als UI-Entwurf und blockieren den Cloud-Sync.

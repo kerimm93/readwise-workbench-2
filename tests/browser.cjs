@@ -42,7 +42,22 @@ async function configure(p,first){await nav(p,'Einstellungen');await p.getByLabe
  try{
  const a=await browser.newContext({viewport:{width:1360,height:1000}}),b=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});await intercept(a,origin);await intercept(b,origin);const pa=await a.newPage(),pb=await b.newPage();for(const p of [pa,pb])p.on('pageerror',e=>errors.push(e.message));
  await pa.goto(appUrl);await pa.getByRole('heading',{name:'Was bleibt hängen?'}).waitFor();await configure(pa,true);await nav(pa,'Eingang');await pa.getByRole('button',{name:'Readwise laden',exact:true}).click();await idle(pa);assert.equal(await pa.evaluate(()=>S.candidates.length),2);
+ // Sort selection survives reload, preserves selected IDs and controls quick selection.
+ const visibleIds=()=>pa.locator('input[aria-label^="Highlight "]').evaluateAll(xs=>xs.map(x=>x.getAttribute('aria-label')));
+ assert.equal(await pa.getByLabel('Sortierung',{exact:true}).inputValue(),'newest');
+ assert.deepEqual(await visibleIds(),['Highlight 101 auswählen','Highlight 102 auswählen']);
+ await pa.getByLabel('Sortierung',{exact:true}).selectOption('oldest');
+ assert.deepEqual(await visibleIds(),['Highlight 102 auswählen','Highlight 101 auswählen']);
+ await pa.reload();await pa.getByRole('heading',{name:'Was bleibt hängen?'}).waitFor();
+ assert.equal(await pa.getByLabel('Sortierung',{exact:true}).inputValue(),'oldest');
+ await pa.getByRole('button',{name:'1',exact:true}).click();assert.deepEqual(await pa.evaluate(()=>UI.selected),['102']);
+ await pa.getByLabel('Sortierung',{exact:true}).selectOption('newest');
+ assert.deepEqual(await pa.evaluate(()=>UI.selected),['102']);
  await pa.screenshot({path:path.join(outDir,'desktop-inbox.png'),fullPage:true});
+ await pa.setViewportSize({width:390,height:844});
+ assert.equal(await pa.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+ await pa.screenshot({path:path.join(outDir,'mobile-inbox.png'),fullPage:true});
+ await pa.setViewportSize({width:1360,height:1000});
  await pa.getByRole('checkbox',{name:'Highlight 101 auswählen'}).check();await pa.getByRole('checkbox',{name:'Highlight 102 auswählen'}).check();await pa.getByRole('button',{name:'Verarbeitung beginnen →',exact:true}).click();await idle(pa);const sid=await pa.evaluate(()=>S.sessions[0].id);
  await pa.getByLabel('Zwischenstand / bisheriger Dialog').fill('Begonnen: Ich erkläre Highlight 101. Highlight 102 könnte ich verwerfen.');await pa.getByRole('button',{name:'Zwischenstand speichern',exact:true}).click();await idle(pa);await sync(pa);assert.equal(api.writes,1);assert.equal(api.remote.includes('Verständnislücke'),false);
  await pb.goto(appUrl);await pb.getByRole('heading',{name:'Was bleibt hängen?'}).waitFor();await configure(pb,false);await sync(pb);assert.equal(await pb.evaluate(()=>S.sessions[0].id),sid);assert.equal(await pb.evaluate(()=>S.candidates.length),2);assert.equal(api.writes,1);

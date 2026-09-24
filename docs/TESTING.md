@@ -1,4 +1,12 @@
-# Prüfprotokoll · 2.0.0
+# Prüfprotokoll · 2.0.1
+
+## Update 2.0.1 · 24. September 2026
+
+**35 Kern-/Regressionstests bestanden**: die bisherigen 32 plus drei gezielte Sortierprüfungen. Geprüft wurden alle vier Reihenfolgen, Zeitzonen, fehlendes Highlight-Datum mit Ersatzdatum, unbekanntes Datum am Ende, alte/fehlende Ansichtseinstellung, Suchfilter und Schnellauswahl, ausgeschlossene verarbeitete/reservierte Kandidaten, Erhalt ausgewählter IDs sowie neue gegenüber bereits eingefrorenen Sessionreihenfolgen. Keine Änderung am gespeicherten Candidate-State durch Umsortieren.
+
+**Browser-Test erneut bestanden** mit Chromium 153.0.8010.0: Standardreihenfolge, Umsortieren, Speichern über Reload, Schnellauswahl und Erhalt der Auswahl über echte DOM-Interaktionen. Der darunter dokumentierte vollständige Durchlauf mit zwei Browser-Kontexten wurde ebenfalls wiederholt: 3 simulierte Gist-PATCHes, 1 simuliertes Anki-addNote, keine JavaScript-Page-Errors. Eingang auf Desktop und mit 390px Breite visuell geprüft, kein horizontaler Überlauf. Externe Dienste weiterhin simuliert; keine echten Konten oder Anki-Sammlungen verändert.
+
+## Basisprüfung 2.0.0
 
 Stand: 24. September 2026. Getestet wurde der ausgelieferte HTML-Code, kein separates Modell seiner Logik.
 

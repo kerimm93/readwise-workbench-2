@@ -1,4 +1,4 @@
-# Architektur und bewusste Grenzen · 2.0.0
+# Architektur und bewusste Grenzen · 2.0.1
 
 ## Quellen und Kontinuität
 
@@ -11,6 +11,8 @@
 ## Ein State, lokale Config, abgeleitete Anzeige
 
 `S` enthält `workspace_id`, Importgrenze/Checkpoints, `candidates[]`, `sessions[]`, `deletedIds{}`. Primär IndexedDB; kleine Verbindungskonfiguration `C` separat in localStorage. Transaktionen werden erst bei `oncomplete` als gespeichert gewertet. Eine serialisierte Write-Queue verhindert lokale Schreibrennen. Lokal speichern und Cloud-Abgleich sind getrennt.
+
+`UI.inboxSort` liegt ausschließlich unter `rww2.ui` in localStorage. Fehlende oder unbekannte Werte werden als `newest` behandelt. Sortiert wird eine abgeleitete Kandidatenliste, nie `S.candidates` selbst. Highlight-Zeitstempel werden als Zeitwerte verglichen; fehlende Highlight-Daten fallen auf `created_at` zurück, vollständig fehlende Daten ans Ende. Importdatum bedeutet `first_seen_at`. Neue Sessions frieren die ausgewählten IDs in der angezeigten Sortierung ein, bestehende Sessions werden nicht umgeordnet. State-/Handoff-Format, Datenbank und Sync-Datei bleiben gegenüber 2.0.0 unverändert.
 
 Kandidatenidentität = Readwise-Highlight-ID als String. `generation` bezeichnet erneute Verarbeitung derselben ID. Originalquelle und Tags bleiben von der Interpretation getrennt. Die Reader-Dokument-ID stammt nur aus `external_id` bei Exportquelle `reader`, nicht aus der Readwise-Buch-ID.
 
