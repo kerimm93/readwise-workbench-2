@@ -1,66 +1,75 @@
-# Architektur und bewusste Grenzen · 2.0.1
+# Architektur · 2.1.0
 
-## Quellen und Kontinuität
+## Rolle
 
-- Produktvertrag: die bereitgestellte vNext-Skizze, insbesondere Abschnitte 5–13 und 16–19.
-- Prompt 1/2: aus der Skizze übernommen; ergänzt um Session-ID/Quellen, Zwischenstand, tatsächliche Write-Bestätigung, Quellen-als-Daten-Regel und eindeutige Summary-Zähler.
-- App-Referenzen: KERIM APP SYSTEM v3 sowie Gist-Sync Referenzsystem v2.
-- Anki-Grundlage: Workbench 0.2.1 (`ankiInvoke`, Feldprüfung, Vollzitat/Quellnotiz/Medien, ID-Erkennung, Readwise-Link, Note-ID/Recovery-Strategie). Der Adapter wurde an Sessionkarten angepasst, nicht das alte Anki-Deck neu entworfen.
-- Kein Notion-Schema ist im App-Code fest verdrahtet. Der Verarbeitungs-Chat muss den aktuellen Index und die zuständige SOP frisch lesen. Es wurde durch diesen Build kein Zielartefakt in Notion erzeugt.
+Workbench = Eingang, initiale Verwendung, Verarbeitungsprotokoll. Kein Lernplan, Recall-Dashboard oder SRS. Notion und andere Zielsysteme werden im externen Chat bearbeitet. Die Workbench importiert die Ergebnisbilanz. Anki bleibt ein separater, bestätigter App-Write.
 
-## Ein State, lokale Config, abgeleitete Anzeige
+## Persistenz und Kompatibilität
 
-`S` enthält `workspace_id`, Importgrenze/Checkpoints, `candidates[]`, `sessions[]`, `deletedIds{}`. Primär IndexedDB; kleine Verbindungskonfiguration `C` separat in localStorage. Transaktionen werden erst bei `oncomplete` als gespeichert gewertet. Eine serialisierte Write-Queue verhindert lokale Schreibrennen. Lokal speichern und Cloud-Abgleich sind getrennt.
+- Bestehende IndexedDB `readwise-workbench-2`, Config `rww2.config`, Ansicht `rww2.ui`, Fallback `rww2.fallback`.
+- Stateformat `readwise-workbench-state-v2`, numerische Version 2. Neue Statefelder: `workflows[]`; je Session `workflow` (Vorlagensnapshot) und `handoff_imported_at`.
+- `validateState` gibt einen validierten, normalisierten Clone zurück; ein altes Inputobjekt wird nicht verändert.
+- Vorhandensein von `workflows` unterscheidet alten State von neuem. Nur alter State erhält fehlende Sessionfelder automatisch. Bei neuem State werden fehlende Snapshots als Fehler behandelt.
+- Beim Boot vor dem Speichern der Migration lokales Recovery des alten Stands. Quellen, Karten, Handoff-Inhalte, IDs und Lerngeschichte werden nicht umgeschrieben.
+- Alte Sessions erhalten die neutrale Anki-Vorlage. 2.0 hatte keine Prompt-Snapshots; die damalige genaue Textfassung ist nicht rekonstruierbar. Importzeit bleibt null, statt aus mutablem updated_at geraten zu werden.
+- Backups 2.0/2.1 lesbar; neue Exporte 2.1. Alte App-Versionen lehnen neue Felder ab. Alle Geräte vor weiterer Nutzung des gemeinsamen Gists aktualisieren.
+- Transaktionale IndexedDB-Write-Queue, Commit erst nach oncomplete; bei Speicherfehler keine Änderung am übernommenen In-Memory-State.
+- Tokens und Endpunkte ausschließlich in lokaler Config, Passphrase ausschließlich im Tab. Persönliche Vorlagen sind Inhaltsdaten; Backup und lokaler State sind Klartext.
 
-`UI.inboxSort` liegt ausschließlich unter `rww2.ui` in localStorage. Fehlende oder unbekannte Werte werden als `newest` behandelt. Sortiert wird eine abgeleitete Kandidatenliste, nie `S.candidates` selbst. Highlight-Zeitstempel werden als Zeitwerte verglichen; fehlende Highlight-Daten fallen auf `created_at` zurück, vollständig fehlende Daten ans Ende. Importdatum bedeutet `first_seen_at`. Neue Sessions frieren die ausgewählten IDs in der angezeigten Sortierung ein, bestehende Sessions werden nicht umgeordnet. State-/Handoff-Format, Datenbank und Sync-Datei bleiben gegenüber 2.0.0 unverändert.
+## Workflows und Vorlagen
 
-Kandidatenidentität = Readwise-Highlight-ID als String. `generation` bezeichnet erneute Verarbeitung derselben ID. Originalquelle und Tags bleiben von der Interpretation getrennt. Die Reader-Dokument-ID stammt nur aus `external_id` bei Exportquelle `reader`, nicht aus der Readwise-Buch-ID.
+Zwei feste Workflow-IDs, notion und anki. Pro Workflow frei editierbarer Startprompt und Handoff-Zusatz mit updated_at. Öffentliche Defaults enthalten keine persönliche Notion-URL.
 
-Eine Session friert ihre Quellen ein. Änderungen der Readwise-Quelle überschreiben keine laufende Session. Die Session enthält Zwischenstand, Chat-Link, Handoff-Entwurf, endgültiges Handoff und Kartenstatus. Karten hängen innerhalb derselben Session, damit ein Sync keinen halb übernommenen Handoff-/Kartenstand erzeugt.
+Workflowwahl im Eingang ist lokale UI-Präferenz. newSession friert die ausgewählte Vorlage und Quellen ein. Spätere Änderungen an den globalen Vorlagen beeinflussen die Session nicht. Zwischenstand bleibt separat editierbar.
 
-Candidate-Status wird aus der aktuellen Generation und zugehörigen Sessions abgeleitet: neu → in_session → awaiting_handoff → processed/discarded/deferred/error. Ausstehende oder fehlgeschlagene Anki-Karten überschreiben die Erfolgsanzeige mit pending_anki/error. Ein bloßes `outcome: processed` im Handoff ist kein bestätigter Anki-Write.
+Ersetzung per einzelnem Regex-Durchlauf und Callback: eingebettete Quellen werden nicht erneut als Template interpretiert. Fehlende Eingabe-Variable führt zur automatischen Ergänzung. Handoff-Vertrag und erwartete IDs werden immer angefügt. Der Notion-Workflow verlangt anki:null.
 
-Es gibt absichtlich keine zweite Kategorie-Spalte am Kandidaten, die mit der endgültigen Entscheidung auseinanderlaufen könnte. `route` liegt im Handoff-Item; vorhandene Readwise-Tags sind nicht verbindlich.
+## Protokoll
 
-## Geräte-State
+Dauerhafte Quelle des Protokolls sind die Handoffs aller Sessions. Eine abgeleitete Zeile je Session und Highlight:
 
-- Eigene Datei: `readwise_workbench_v2.json`; alte Dateinamen werden weder gelesen noch verändert.
-- Transporthülle: AES-256-GCM; Schlüssel aus PBKDF2-SHA256, 250.000 Iterationen, zufälliges 16-Byte-Salt und 12-Byte-IV pro Write. Passphrase nur im Tab-Arbeitsspeicher. Dies ist keine zugesicherte, extern auditierte Kryptolösung.
-- Die lokale gemeinsame Vergleichsbasis `BASE` ist die zuletzt verifizierte Remote-Version, kein hochgeladenes Steuerfeld.
-- Dreiwege-Merge pro Kandidat und pro kompletter Session: unveränderte Seite gibt nach; echte beidseitige Änderung verlangt Entscheidung. Ohne gemeinsame Basis kein stilles Last-Write-Wins. Lokale Version ist nur Vorauswahl, nicht automatische Bestätigung.
-- Eindeutige neue IDs werden vereinigt. Tombstones gewinnen, bleiben konservativ unbegrenzt erhalten. Kein automatisches 90-Tage-Pruning, weil länger offline gewesene Geräte sonst gelöschte Daten zurückbringen könnten. In dieser Version gibt es ohnehin keine Hard-Delete-Oberfläche.
-- Zwei unabhängig gestartete offene Sessions für dieselbe Highlight-Generation blockieren das Merge. Dafür gibt es noch keinen Spezial-Merge: auf einem Gerät eine Session bewusst bilanzieren und danach erneut abgleichen. Nicht parallel starten.
-- Importcheckpoints werden beim Merge konservativ zurückgesetzt/auf den älteren Stand gesetzt. Eventuelle Replays sind ID-basiert, keine Duplikate.
-- No-op = kein PATCH; ein manuell angeforderter No-op zeigt lediglich die Rückmeldung „Stand identisch“.
-- Gist `files[file].truncated` oder fehlender Inline-Inhalt → vollständiges `raw_url` lesen. Nur HTTPS auf `gist.githubusercontent.com` mit passender Gist-ID; keine Tokenweitergabe an Raw-Requests. Unklare/ungültige/öffentliche/geleerte Remote-Dateien werden nicht blind überschrieben. Eine unbekannte Datei wird nur als leer behandelt, wenn sie sicher fehlt oder genau `{}` enthält.
-- Vor destruktiver lokaler Übernahme wird Recovery gespeichert. Vor PATCH Remote nochmals lesen; danach Inhalt zurücklesen und vergleichen. Fehlgeschlagener Readback heißt ausdrücklich **unklarer Remote-Stand**, nicht Erfolg. Lokaler Inhalt bleibt unverändert, bis verifiziert.
+- stabile event_id aus Session-ID und Highlight-ID;
+- Readwise-ID, generation, Workflow;
+- tatsächliche Verarbeitung laut Handoff, Importzeit der App und separat Sessionstart;
+- eingefrorene Quelle;
+- komplettes Handoff-Item samt beliebigen Zusatzfeldern;
+- Root-/Session-/Summary-Metadaten des Handoffs;
+- aktueller Anki-Status als zusätzliche Information.
 
-### Kein atomarer Parallel-Write-Schutz
+Keine zweite synchronisierte Logkopie. Wiederholter identischer Import ist No-op; erneutes Aufgreifen erzeugt eine weitere Session, alte Ergebnisse bleiben erhalten. Die UI hat keine Session-Löschfunktion. Ein ausdrücklich ersetzendes Backup kann wie bisher einen älteren Gesamtstand wiederherstellen; davor wird Recovery gespeichert.
 
-Preflight und Readback sind keine atomare Compare-and-Swap-Operation. Ein zweiter Client kann genau zwischen Lesen und Schreiben intervenieren; sogar ein zuvor erfolgreicher Readback kann später überschrieben werden. Diese Version behauptet keine verlustfreie gleichzeitige Zusammenarbeit. Vorgesehener Gebrauch: sequentieller Gerätewechsel, vorher/nachher abgleichen und regelmäßig Backup sichern. Eine vollständige Sync-Infrastruktur wäre ein eigener Ausbau.
+Suche und JSON-Export arbeiten auf dem gesamten Protokoll. Anzeige von Zusatzfeldern als escaptes JSON; Inhalte werden nicht als HTML oder Code ausgeführt.
 
-## Handoff und Anki
+## Handoff
 
-Typ `readwise-workbench-handoff-v2`, Version `2.0`. Die komplette maschinenlesbare Struktur steckt in Prompt 2. Validator verlangt alle ursprünglichen IDs genau einmal, erlaubte Routen/Outcomes und passende Zähler. `anki_ready` zählt Highlights mit Payload; `notion_artifacts` eindeutige URLs.
+Typ `readwise-workbench-handoff-v2`, akzeptierte Versionen 2.0 und 2.1. Neue Prompts erzeugen 2.1. Pflichtkern: genaue Sessionzuordnung, vollständige eindeutige Highlightmenge, definierte Outcomes und konsistente Standardzähler.
 
-Notion wird durch den Chat nach frischem Index/SOP geschrieben. Das Handoff enthält echte Referenzen, niemals einen Auftrag an die App, sie nochmals anzulegen. Das Format einer Referenz ist prüfbar, ihre Existenz ohne Notion-Zugriff nicht.
+route ist freier Text. user_processing erlaubt freie Felder und {}. actions ist optional, verlangt je Aktion nur description und status completed/planned/failed; andere Daten werden erhalten. artifacts erlaubt freie System-/Ziel-/Aktionsnamen bei tatsächlicher HTTP(S)-Referenz, für Notion mit Notion-Host.
 
-Import ist identisch wiederholbar. Ein abweichendes zweites Handoff für dieselbe Session wird blockiert; ein bestätigter Import wird nicht still ausgetauscht. Kartenkorrekturen erfolgen im separaten Review. Karten-ID = Session + Highlight + Index. SHA-256 dieser ID bildet den Recovery-Tag.
+Unbekannte Felder auf allen Handoff-Ebenen werden gespeichert und exportiert. Bekannte technische Felder bleiben typisiert. Anki behält seine Pflichtfelder; zusätzliche Metadaten werden erhalten. Einzelkarte und Kartenliste dürfen nicht gemischt werden.
 
-Anki-Reihenfolge: Ziel-/Feldprüfung → Recovery-Suche → aktuelle Readwise-Link-Suche → gegebenenfalls explizite Zusatzkartenfreigabe → addNote → valide Note-ID → lokale Transaktion. Eine nach verloren gegangener Antwort gefundene Recovery-Notiz wird nur übernommen, wenn Felder/Modell passen. Existierende Notizen werden nicht überschrieben. Mehrere Karten derselben Session dürfen zu einem Highlight gehören.
+processed benötigt Ergebnisreferenz, erledigte Aktion oder vollständigen Anki-Payload. Unfertige Aktionen verhindern processed, fehlgeschlagene Aktionen verlangen error. Fehler enthalten notes und errors. discarded enthält keine erledigten Aktionen/Artefakte/Karten. deferred enthält keinen Anki-Write.
 
-Fehlende bereits bestätigte Note-IDs erfordern manuelle Wiederfreigabe; zuerst Profil prüfen. Ein Deck kann nach ausdrücklicher Sync-Bestätigung angelegt werden. Kartenfeldinhalte werden als Klartext behandelt und HTML-escaped; Originalquelle, Notiz und stabile URL ergänzt. Keine automatische Verarbeitung fremden HTML-Codes aus dem Handoff.
+Keine automatische Notion-Verifikation durch die App: die Importvorschau verlangt eine Prüfung der tatsächlich erfolgten Aktionen. Keine erneute Ausführung von Handoff-Aktionen.
 
-## PWA
+## Sync
 
-App-Shell-Cache pro Pfad und Version, nur explizite lokale Assets. Alle API-/Fremd-Origin- und nicht passenden Pfade umgehen den Service Worker. Keine Tokens oder Anwendungszustände im Cache. Kein `skipWaiting`/`clients.claim`: keine Codeänderung mitten in einer Session. Netzwerkzugriffe und IndexedDB-State bleiben unabhängig vom Shell-Cache.
+Bestehender manueller AES-GCM-Gist-Abgleich, Datei `readwise_workbench_v2.json`. PBKDF2-SHA256 mit 250000 Iterationen, zufälliges Salt und IV. Keine neue Sync-Infrastruktur.
 
-## Nicht enthalten
+Dreiwege-Merge pro Kandidat, kompletter Session und jetzt pro Workflow-Vorlage. Gemeinsame Basis BASE bleibt lokal. Gleichzeitige Änderungen erfordern Entscheidung; kein stilles Last-Write-Wins. Legacy-BASE und Remote werden gleich normalisiert, damit die Migration keine Scheinkonflikte erzeugt.
 
-Automatischer Chatversand, LLM-API, Hintergrund-KI, direkte Notion-Writes, große Altbestandsmigration, automatische Multiuser-Synchronisierung, neue Notion-Datenbanken, automatische Poesie-Kopie, automatisches Entfernen des `Workbench`-Tags, persistenter kompletter Chatverlauf, automatische Kartenlöschung oder Template-Veränderung.
+Ein ansonsten leeres Gerät mit eigenen Vorlagen gilt nicht als leer und wird nicht still durch einen fremden Workspace ersetzt. Frische Geräte zuerst laden.
 
-## Öffentliche technische Referenzen
+Tombstones, konservative Checkpoints, Recovery vor ersetzender Übernahme, Preflight vor PATCH, Readback danach, echte No-op ohne PATCH bleiben erhalten. Gekürzte Gist-Inhalte werden vollständig über geprüfte raw_url nachgeladen, ohne GitHub-Token an den Raw-Host weiterzugeben.
 
-- Readwise Export API: https://readwise.io/api_deets
-- GitHub Gists API, gekürzte Inhalte: https://docs.github.com/en/rest/gists/gists#get-a-gist
-- AnkiConnect: https://foosoft.net/projects/anki-connect/
+Grenze: Preflight und Readback sind kein atomarer Compare-and-Swap. Eng gleichzeitige Writes sind nicht garantiert verlustfrei. Vorgesehene Nutzung: sequentieller Gerätewechsel und Backups.
+
+## Anki und PWA
+
+Anki-Adapter bleibt: Feldprüfung, Recovery-Suche per stabiler Karten-ID, aktuelle Suche nach Readwise-ID, ausdrückliche Zusatzkartenfreigabe, addNote, bestätigte Note-ID, lokale Speicherung. Existierende Notizen werden nicht überschrieben; gespeicherte Note-IDs und Kartenhistorie bleiben erhalten. Quelltext/Notiz/Link werden bewahrt und HTML-escaped.
+
+PWA: pfadgebundener App-Shell-Cache, Version 2.1.0, relative Pfade. Keine API-/Fremd-Origin-/State-Caches, kein Background-Sync, kein automatischer Wechsel mitten in einer laufenden Session.
+
+## Technische Referenzen
+
+Bestehende Implementierung und Projektvorgaben KERIM APP SYSTEM v3, Gist-Sync Referenz v2, GitHub-Sync Best Practices. API-Adapter wurden in diesem Update nicht neu entworfen. Kein Framework, kein Build-Step, kein neues Notion-Schema.

@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Readwise Workbench 2.0",
+  "name": "Readwise Workbench 2.1",
   "short_name": "Workbench 2",
-  "description": "Verstehen zuerst. Readwise-Highlights dialogisch verarbeiten und bewusst weiterführen.",
+  "description": "Readwise-Highlights bewusst verwenden und ihre initiale Verarbeitung dokumentieren.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
