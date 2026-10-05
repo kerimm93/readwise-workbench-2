@@ -1,72 +1,65 @@
-# Prüfprotokoll · 2.0.1
+# Prüfprotokoll · 2.1.1
 
-## Update 2.0.1 · 24. September 2026
+Stand: 4. Oktober 2026. Die 49 Kern- und Regressionstests prüfen den ausgelieferten HTML-Code von 2.1.1. Der unten dokumentierte Browser-Durchlauf stammt aus 2.1.0; für 2.1.1 wurde er wegen der inzwischen fehlenden Chromium-Laufzeit nicht erneut ausgeführt.
 
-**35 Kern-/Regressionstests bestanden**: die bisherigen 32 plus drei gezielte Sortierprüfungen. Geprüft wurden alle vier Reihenfolgen, Zeitzonen, fehlendes Highlight-Datum mit Ersatzdatum, unbekanntes Datum am Ende, alte/fehlende Ansichtseinstellung, Suchfilter und Schnellauswahl, ausgeschlossene verarbeitete/reservierte Kandidaten, Erhalt ausgewählter IDs sowie neue gegenüber bereits eingefrorenen Sessionreihenfolgen. Keine Änderung am gespeicherten Candidate-State durch Umsortieren.
+## Ergebnis
 
-**Browser-Test erneut bestanden** mit Chromium 153.0.8010.0: Standardreihenfolge, Umsortieren, Speichern über Reload, Schnellauswahl und Erhalt der Auswahl über echte DOM-Interaktionen. Der darunter dokumentierte vollständige Durchlauf mit zwei Browser-Kontexten wurde ebenfalls wiederholt: 3 simulierte Gist-PATCHes, 1 simuliertes Anki-addNote, keine JavaScript-Page-Errors. Eingang auf Desktop und mit 390px Breite visuell geprüft, kein horizontaler Überlauf. Externe Dienste weiterhin simuliert; keine echten Konten oder Anki-Sammlungen verändert.
+- **49 Kern- und Regressionstests bestanden**, einschließlich JavaScript-Syntaxprüfung mit vm.Script.
+- **Browser-Integrationstest für 2.1.0 bestanden**, Chromium 153.0.8010.0; kein neuer Browser-Testnachweis für 2.1.1.
+- Echte DOM-Bedienung, IndexedDB, Web Locks, Web Crypto, Downloads und Service Worker.
+- Zwei getrennte Browser-Kontexte für Desktop und Mobilgerät, zusätzlich ein eigener Kontext für die Altdaten-Migration.
+- 5 simulierte Gist-PATCHes, 1 simuliertes Anki-addNote. Keine JavaScript-Page-Errors.
+- 390px Mobilbreite ohne horizontalen Überlauf; Eingang, persönliche Vorlagen und Protokoll visuell geprüft.
 
-## Basisprüfung 2.0.0
+## Neue Prüfungen
 
-Stand: 24. September 2026. Getestet wurde der ausgelieferte HTML-Code, kein separates Modell seiner Logik.
+Korrektur 2.1.1: Der Regressionstest mit mehr als einem Tag zwischen Vorschau und Bestätigung schlug vor der Korrektur am zu frühen Importzeitpunkt fehl und besteht danach. Er prüft gespeicherten State, Protokoll, Session-/Kartenzeitstempel und identischen Wiederholungsimport. Zwei weitere Tests prüfen Abbruch ohne Zustandsänderung sowie Speicherfehler mit erhaltenem Entwurf und neu datiertem Wiederholungsversuch.
 
-## Lokal durchgeführt
+- Standard für neue Sessions: Notion / flexibel, ohne direkte Anki-Payloads.
+- Editierbare Vorlagen, lokale Speicherung, Verschlüsselung und Übernahme auf ein zweites Gerät.
+- Session-Snapshot bleibt nach späterer Änderung der globalen Vorlage unverändert.
+- Mehrfache Variablen werden ersetzt; Marker im Quelltext werden nicht rekursiv ausgewertet.
+- Fehlende Input-/Schema-Variablen lassen verpflichtende Daten nicht verschwinden.
+- Speicherfehler erhält bisherigen Zustand und ungespeicherten Vorlagenentwurf.
+- Öffentliche HTML-Defaults enthalten keine persönliche Notion-Sammlungs-ID.
+- Freie Routen, leeres user_processing, mehrere Aktionen und beliebig verschachtelte Zusatzfelder.
+- Zusatzfelder bleiben in Originalhandoff, State, verschlüsseltem Gist, Backup und Protokollexport erhalten.
+- Action-only-Ergebnis mit konkreter erledigter Aktion gültig; geplante/fehlgeschlagene Aktionen dürfen keinen vollständigen Erfolg vortäuschen.
+- Falsche Session-/Highlight-ID, ungültiger Status und ausführbare URL werden blockiert.
+- Handoff-Replay erzeugt keine weitere Karte oder Protokollzeile.
+- Erneutes Aufgreifen erhält vorherige Verarbeitung; eine neue Bilanz fügt eine Zeile hinzu.
+- Importzeit bleibt auch bei späterem Karten-/Session-Update unverändert.
+- Freie Texte und JSON werden beim Anzeigen HTML-escaped.
+- Vorlagen werden einzeln zusammengeführt; gleichzeitige Bearbeitung derselben Vorlage erzeugt Konflikt.
+- Ein ansonsten leeres Gerät mit eigenen Vorlagen wird nicht still durch einen fremden Workspace ersetzt.
+- Legacy-State und alte Vergleichsbasis werden deterministisch normalisiert, ohne Scheinkonflikte.
+- Tatsächlicher Boot aus alter IndexedDB-Struktur erhält Handoff und bestätigte Anki-Note-ID; unbekannte historische Importzeit bleibt null.
 
-**32 automatisierte Kern-/Regressionstests** in Node.js, inklusive JavaScript-Syntaxprüfung mit `vm.Script`:
+## Browser-Durchlauf
 
-- neue ungetaggte Highlights, alte Highlights ausschließlich über exaktes `Workbench`;
-- dauerhaftes Tag ohne Doppelaufnahme, beobachtete Tag-Flanke als Re-Entry;
-- feste Sessionquellen und Reservierung von Kandidaten;
-- Reader-Dokument-ID von Readwise-Buch-ID getrennt;
-- Handoff vollständig, eindeutige IDs, falsche Session/Format/Zähler blockiert;
-- mehrfacher identischer Import ist No-op, auch nach bestätigtem Anki-Sync;
-- mehrere Karten und zusätzliche Notion-Referenzen;
-- Fehler-/Vertagungsfälle statt falschem Abschluss;
-- State-Schema, gespeichertes Karteninventar, Quellen-HTML escaped;
-- Dreiwege-Merge, konservative Konflikte, leeres Zweitgerät, Tombstones;
-- Doppelreservierung durch parallele Sessions blockiert;
-- Verschlüsselungs-Roundtrip, falsche Passphrase, beschädigtes/unklares Remote-Format;
-- gekürzter Gist → Raw-Fallback ohne Tokenweitergabe;
-- öffentliche Gists/fremde Raw-Hosts/gekürzte Dateilisten blockiert;
-- kein PATCH bei identischem State, veränderter Preflight bricht ab;
-- unklarer Readback behauptet keinen erfolgreichen Sync;
-- Anki API-Fehler trotz HTTP 200 erkannt;
-- Quelle/Notiz/Link/Lernschicht erhalten;
-- Recovery nach wiederholtem Anki-Aufruf ohne doppelte Anlage;
-- bestehende Highlight-Notizen benötigen bewusste Zusatzkartenfreigabe;
-- Speicherfehler lassen den übernommenen State unverändert;
-- fehlgeschlagene spätere Readwise-Seite übernimmt keine Teilmenge;
-- frühere Generationen bleiben im Fortsetzungskontext;
-- ungespeicherte Formularänderungen blockieren Cloud-Sync.
+1. Synthetische Readwise-Kandidaten laden; Sortierung, Schnellauswahl und Persistenz prüfen.
+2. Anki-Session auf A beginnen, Zwischenstand speichern, Gist initialisieren.
+3. Leeres Gerät B lädt denselben Workspace. Gist liefert absichtlich gekürzten Inline-Inhalt; vollständiger Raw-Fallback wird benötigt.
+4. B setzt fort und speichert Handoff-Entwurf. A übernimmt, prüft/freigibt und synchronisiert genau eine Anki-Karte.
+5. Rückweg auf B, unveränderter Abgleich ohne PATCH, Handoff-Replay ohne Doppelanlage.
+6. Auf A persönliche Notion-Vorlage speichern und einen erledigten Kandidaten erneut aufgreifen.
+7. Neue Session mit Notion-Workflow beginnen, Zwischenstand und Vorlagen auf B übertragen.
+8. Auf B mit frei benannter Sprint-/Time-Sector-Verwendung und verschachtelten Zusatzdaten abschließen. Keine zusätzliche Anki-Anlage.
+9. Vollständiges Protokoll über echten Browserdownload exportieren, Inhalte prüfen und zurück auf A synchronisieren.
+10. Separaten Kontext mit altem State befüllen; Reload führt die produktive Migration aus.
+11. Zweittab-Schreibschutz, IndexedDB-Reload und Offline-App-Shell prüfen.
 
-**Browser-Integrationstest:** Chromium 153.0.8010.0, echte DOM-Interaktionen, IndexedDB, Web Locks, Web Crypto und Service Worker. Zwei voneinander getrennte Browser-Kontexte: Desktop 1360 × 1000 und mobile Ansicht 390 × 844.
+## Grenzen
 
-Durchlauf:
+Externe Readwise-, GitHub- und Anki-Dienste waren simuliert. Es wurden keine echten Konten, Notion-Seiten oder Anki-Sammlungen verändert. Der Notion-Beispielwrite im Test ist ausdrücklich synthetisch.
 
-1. Zwei synthetische Kandidaten aus einer simulierten Readwise-Antwort laden.
-2. Session auf Gerät A starten, Zwischenstand speichern, verschlüsselten Gist initialisieren.
-3. Leeres Gerät B übernimmt Workspace und Quellen; Gist wird absichtlich als gekürzt geliefert, vollständiger Raw-Inhalt muss nachgeladen werden.
-4. B setzt Verarbeitung fort und speichert Zwischenstand plus Handoff-Entwurf. Ein vorher mit `make-anki` getaggter Kandidat wird bewusst verworfen.
-5. A übernimmt den Entwurf, validiert/importiert und gibt genau eine Karte frei.
-6. Simulierter AnkiConnect-Write bestätigt eine Note-ID; der Abschluss wird zurück auf B synchronisiert.
-7. Handoff-Replay und unveränderter Gist-Abgleich erzeugen keinen zusätzlichen Write.
-8. Zweiter Tab wird schreibgesperrt; Reload erhält den Status aus IndexedDB.
-9. Offline-Reload startet aus dem App-Shell-Cache. Mobile Ansicht ohne horizontalen Überlauf.
+Damit sind App-Verhalten, Datenfluss und Migration geprüft. Ein realer Durchlauf mit persönlicher Zielstruktur, echtem Gist, tatsächlichem Mobilgerät und gegebenenfalls AnkiConnect steht als Nutzerabnahme noch aus. Safari/iOS und Firefox wurden in diesem Update nicht separat getestet.
 
-Beobachtetes Ergebnis: **3 Gist-PATCHes, 1 Anki-addNote**, keine JavaScript-Page-Errors. Desktop-/Mobil-Screenshots visuell geprüft.
+## Reproduzieren
 
-## Nicht durchgeführt / noch offen
+```bash
+node --test tests/*.test.cjs
+CHROMIUM_PATH=/pfad/zu/chromium TEST_OUTPUT_DIR=/tmp/rww-tests node tests/browser.cjs
+```
 
-Keine echten Readwise-/GitHub-/Notion-Konten benutzt. Keine echte Anki-Sammlung beschrieben. Die externen Dienste waren im Integrationstest simuliert. Dies prüft die App-Pipeline, ersetzt aber nicht CORS-/Berechtigungs-/Modelltests deiner realen Umgebung.
-
-- [ ] Neue PWA unter endgültiger GitHub-Pages-Adresse öffnen/installieren.
-- [ ] Readwise-Import mit echtem Token: neu ohne Tag + altes Highlight mit Workbench.
-- [ ] Exakten echten Anki-Notiztyp und Templates live prüfen.
-- [ ] Ein echtes Highlight dialogisch erklären und gemeinsam Route entscheiden.
-- [ ] Echten Notion-Write nach frischem Index/SOP bestätigen und Zielseite überprüfen, falls diese Route gewählt wird.
-- [ ] State über echten Gist auf ein physisches zweites Gerät übertragen.
-- [ ] Echtes Handoff importieren; falls Anki gewählt, genau eine Karte am Laptop synchronisieren und in Anki öffnen.
-- [ ] Abschluss auf zweitem Gerät sehen; Wiederholung ohne Dublette.
-- [ ] Safari/iOS, Firefox und E-Ink-Gerät jeweils im realen Betrieb testen.
-
-Erst dieser letzte Durchlauf erfüllt den ausdrücklich gewünschten **realen** End-to-End-Erfolg. Die Software ist dafür vorbereitet; der Erfolg wird hier nicht vorweggenommen.
+Playwright wird nur zur Entwicklung benötigt. Die ausgelieferte PWA selbst hat keine npm-Abhängigkeiten und keinen Build-Schritt.

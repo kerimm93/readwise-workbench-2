@@ -8,11 +8,13 @@ Systemschriften und Georgia statt externer Font-Requests. E-Ink-Modus schwarz/we
 
 Fünf Bereiche:
 
-1. Eingang: auswählen, nicht kategorisieren.
-2. Sessions: Dialog, Zwischenstand, zwei Prompts, Handoff-Vorschau.
+1. Eingang: Highlights und Workflow für eine neue Session auswählen; Ziel im Chat entscheiden.
+2. Sessions: Verwendung, Zwischenstand, zwei Prompts, Handoff-Vorschau. Keine Pflicht zur eigenen Erklärung vor bloßer Ablage.
 3. Anki-Review: prüfen/freigeben vor Schreibaktion.
-4. Verlauf: Entscheidungen und tatsächliche Zielreferenzen.
-5. Einstellungen: nur lokale Verbindungen, manueller Abgleich, Recovery.
+4. Verlauf: alle Verarbeitungsrunden, Aktionen und tatsächliche Zielreferenzen. Suchbar, vollständiger JSON-Export; freie Daten unter Details.
+5. Einstellungen: persönliche Workflow-Vorlagen, lokale Verbindungen, manueller Abgleich, Recovery.
+
+Notion / flexibel steht bei den Vorlagen immer vor Dialog + AnkiConnect. Vorlagentexte liegen in aufklappbaren Editoren mit mindestens 220px Höhe. Workflow-Auswahl im unteren Aktionsbereich des Eingangs; auf Mobilgeräten einspaltig. Lange freie Routen und die Protokollüberschrift müssen bei 390px ohne verbreiterten Viewport umbrechen.
 
 Im Eingang steht eine beschriftete Sortierauswahl oberhalb der Suche. Standard: neueste Highlights zuerst; alternativ älteste Highlights, letzter Import oder wieder aufgegriffene Kandidaten. Schnellauswahl und neue Sessionreihenfolge stimmen mit der Anzeige überein. Umsortieren erhält ausgewählte IDs, bestehende Sessions bleiben unverändert. Highlight- und Importdatum sind getrennt sichtbar. Die Auswahl ist lokal pro Gerät gespeichert.
 
