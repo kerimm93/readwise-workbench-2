@@ -75,3 +75,7 @@ PWA: pfadgebundener App-Shell-Cache, Version 2.1.1, relative Pfade. Keine API-/F
 ## Technische Referenzen
 
 Bestehende Implementierung und Projektvorgaben KERIM APP SYSTEM v3, Gist-Sync Referenz v2, GitHub-Sync Best Practices. API-Adapter wurden in diesem Update nicht neu entworfen. Kein Framework, kein Build-Step, kein neues Notion-Schema.
+
+## Additive Erweiterung 2.2.0
+
+Optionale Kandidaten-Vortriage, eingefrorene `items[].triage`, App-Verwerfen und Wiederaufnahmeereignisse sind in [TRIAGE.md](TRIAGE.md) mit Migration, Konfliktverhalten und Abnahmegrenzen beschrieben. State-Version und Handoff-Versionen bleiben erhalten; vor dem gemeinsamen Gist-Sync müssen alle Geräte aktualisiert sein. Die Protokollquelle umfasst nun zusätzlich explizite Wiederaufnahmeereignisse.
