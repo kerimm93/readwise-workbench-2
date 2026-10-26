@@ -1,4 +1,10 @@
-# Readwise Workbench 2.2.1
+# Readwise Workbench 2.3.0
+
+## Nach Quelle verarbeiten
+
+Oben rechts an einem Highlight **Alle Highlights aus dieser Quelle anzeigen** anklicken. Die Ansicht zeigt nur bereits importierte Highlights desselben Artikels, Podcasts oder Buchs, einschließlich laufender und abgeschlossener Verarbeitungen. Verworfene bleiben über die bestehende Checkbox einblendbar. Gleichnamige Quellen werden anhand der Readwise-Quellen-ID unterschieden.
+
+**Offene auswählen (max. 30)** wählt die offenen Treffer der aktuellen Suche/Filter aus. Unter **Für … ausgewählte Highlights** gemeinsam Feynman, Prosa/Poesie oder eine andere Verwendung setzen oder die Auswahl verwerfen. Jede eigene Intention bleibt erhalten; laufende und abgeschlossene Highlights bleiben geschützt. Danach kann aus der Auswahl ein fester Prompt-Batch entstehen. Bei mehr als 30 offenen Highlights mehrere Gruppen verwenden. **Alle Quellen anzeigen** löst den Quellenfilter. Die Quellenansicht wird lokal gespeichert und lädt keine zusätzlichen Highlights von Readwise nach.
 
 ## Optionale Vortriage und selektive Batches
 
@@ -10,7 +16,7 @@ Ohne Vorauswahl führt der Prompt zuerst durch alle vollständigen Highlights, o
 
 **Verwerfen** speichert die Entscheidung sofort, ohne Popup. Quelle, Intention, Zeitpunkt und App-Herkunft bleiben im Verlauf. Oben mit **Verworfene anzeigen** ausgeblendete Highlights einblenden und per **Wieder öffnen** direkt zurückholen. Auch diese Wiederaufnahme wird protokolliert; verworfene Highlights gelangen niemals in neue Batches. Im Verlauf bleibt zusätzlich **Bewusst wieder aufgreifen** verfügbar. Noch offene Sessions können unter Quellen & bisherige Zuordnungen ebenfalls ein Highlight verwerfen. Ein verspätetes Handoff erfordert dann eine zusätzliche Bestätigung: aktuelle App-Entscheidungen bleiben bestehen, alte Ergebnisse werden nur historisch dokumentiert. Veraltete Anki-Payloads sind hierbei gesperrt.
 
-Vor dem Update ein JSON-Backup exportieren und **alle Geräte auf 2.2.1 aktualisieren**, bevor derselbe Gist verwendet wird. App-Tabs schließen und nach dem Update neu öffnen; links unten v2.2.1 prüfen. Alte Daten werden ergänzt; Handoffs 2.0 und 2.1 bleiben lesbar. Keine neue Notion-Anbindung.
+Vor dem Update ein JSON-Backup exportieren und **alle Geräte auf 2.3.0 aktualisieren**, bevor derselbe Gist verwendet wird. App-Tabs schließen und nach dem Update neu öffnen; links unten v2.3.0 prüfen. Alte Daten werden ergänzt; Handoffs 2.0 und 2.1 bleiben lesbar. Keine neue Notion-Anbindung.
 
 Lokale Verifikation und der ausdrücklich noch offene reale Gerätetest: [Sprint-Abnahme](docs/TRIAGE.md).
 

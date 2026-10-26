@@ -71,3 +71,7 @@ Die obigen Ergebnisse bleiben als historischer Stand erhalten. Für den Sprint V
 ## Bedienungsvereinfachung 2.2.1
 
 56 Node-Tests sowie beide Chromium-Suiten bestanden. Verwendungen und Verwerfen werden per sichtbarer Schnellaktion gespeichert. Der mobile Test prüft ausdrücklich das Ausbleiben von Dialogen, die gespeicherte Option „Verworfene anzeigen“, den Batchausschluss und direktes Wiederöffnen. Reale Geräteabnahme bleibt offen.
+
+## Quellenansicht 2.3.0
+
+60 Node-Tests bestanden. Der mobile Chromium-Ablauf prüft zusätzlich Quellenfilter anhand stabiler IDs, Persistenz, Sammelaktionen und Schutz abgeschlossener Highlights. Der bestehende Chromium-Ablauf bleibt als Regression erhalten. Details und Grenzen: [TRIAGE.md](TRIAGE.md).

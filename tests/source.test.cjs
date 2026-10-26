@@ -1,0 +1,17 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {app,source,seed,session,handoff}=require('./helpers.cjs');
+const json=x=>JSON.parse(JSON.stringify(x));
+test('source filter uses stable IDs, resets unrelated filters and persists locally',()=>{
+ const a=app();seed(a,[source('101',{readwise_book_id:'77',title:'Artikel'}),source('102',{readwise_book_id:'77',title:'Neuer Titel'}),source('103',{readwise_book_id:'88',title:'Artikel'})]);a.UI.filter='anders';a.UI.useFilter='reflection';a.UI.selected=['103'];a.showSource('101');assert.deepEqual(json(a.visibleInbox().map(c=>c.id)),['101','102']);assert.equal(a.UI.filter,'');assert.equal(a.UI.useFilter,'all');assert.equal(a.UI.selected.length,0);assert.equal(JSON.parse(a.localStorage.getItem(a.UI_KEY)).sourceFilter.key,'readwise:77');
+ a.pick(30);assert.deepEqual(json(a.UI.selected),['101','102']);a.changeInboxFilter('filter','Neuer');assert.deepEqual(json(a.UI.selected),['102']);a.clearSource();assert.equal(a.UI.sourceFilter,null);
+});
+test('missing source IDs fall back to Reader ID or exact URL, never title alone',()=>{
+ const a=app(),base={readwise_book_id:'',reader_document_id:null,source_url:''};assert.equal(a.sourceKey(source('101',{...base,reader_document_id:'reader-1'})),'reader:reader-1');assert.equal(a.sourceKey(source('101',{...base,source_url:'https://example.org/article'})),'url:https://example.org/article');assert.notEqual(a.sourceKey(source('101',base)),a.sourceKey(source('102',base)));
+});
+test('source view shows completed and reserved highlights but bulk actions affect only open selection',async()=>{
+ const a=app();seed(a,[source('101'),source('102'),source('103')]);let s=session(a,['103'],'notion');a.S=a.applyHandoff(a.S,s.id,handoff(a,s,'reading_journal')).state;s=session(a,['102'],'notion');a.showSource('101');assert.equal(a.visibleInbox().length,3);a.pick(30);assert.deepEqual(json(a.UI.selected),['101']);a.DRAFTS['triage.101.intention']='Ich möchte es als Prosa verwenden.';await a.applySelection('writing',false);assert.equal(a.S.candidates[0].triage.use,'writing');assert.equal(a.S.candidates[0].triage.intention,'Ich möchte es als Prosa verwenden.');assert.equal(a.S.candidates[1].triage.use,'');assert.equal(a.candidateStatus(a.S.candidates[2]),'processed');await a.applySelection('',true);assert.equal(a.visibleInbox().length,2);a.UI.showDiscarded=true;assert.equal(a.visibleInbox().length,3);assert.equal(a.filteredInbox().length,0);assert.equal(a.processingLog().find(e=>e.highlight_id==='101').result.notes,'Ich möchte es als Prosa verwenden.');
+});
+test('source selection is atomic on failure and fixed batch retains selected source inputs',async()=>{
+ const a=app();seed(a,[source('101'),source('102'),source('103',{readwise_book_id:'88'})]);a.showSource('101');a.pick(30);const before=json(a.S);a.DRAFTS['triage.101.intention']='Noch offen';a.writeLocal=async()=>{throw Error('Disk full');};a.run=async(_,fn)=>fn();await assert.rejects(a.applySelection('feynman',false),/Disk full/);assert.deepEqual(json(a.S),before);assert.equal(a.DRAFTS['triage.101.intention'],'Noch offen');
+ a.writeLocal=async()=>{};await a.applySelection('feynman',false);const s=session(a,a.UI.selected,'notion');a.clearSource();a.S=a.setTriage(a.S,'101',{use:'writing',intention:'Später'});assert.deepEqual(json(s.items.map(i=>i.highlight_id)),['101','102']);assert.equal(s.items[0].triage.use,'feynman');assert.equal(s.items[0].source.readwise_book_id,'42');
+});
