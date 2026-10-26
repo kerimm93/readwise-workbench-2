@@ -63,3 +63,7 @@ CHROMIUM_PATH=/pfad/zu/chromium TEST_OUTPUT_DIR=/tmp/rww-tests node tests/browse
 ```
 
 Playwright wird nur zur Entwicklung benötigt. Die ausgelieferte PWA selbst hat keine npm-Abhängigkeiten und keinen Build-Schritt.
+
+## Neuer Stand 2.2.0
+
+Die obigen Ergebnisse bleiben als historischer Stand erhalten. Für den Sprint Vortriage wurden 55 Node-Tests sowie der bestehende und ein zusätzlicher mobiler Chromium-Integrationstest ausgeführt. Neue Befehle, Ergebnisse und offene reale Abnahme: [TRIAGE.md](TRIAGE.md). Die Browserprüfung für 2.2.0 wurde mit Chromium 154.0.8037.57 durchgeführt, externe Dienste ausschließlich simuliert.

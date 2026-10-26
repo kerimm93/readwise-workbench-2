@@ -1,4 +1,20 @@
-# Readwise Workbench 2.1.1
+# Readwise Workbench 2.2.0
+
+## Optionale Vortriage und selektive Batches
+
+Im Eingang unter **Verwendung & Intention** eine optionale primäre Verwendung wählen und eine eigene kurze Notiz speichern. Leere Verwendung bedeutet unentschieden; Entfernen beider Eingaben setzt die Vorauswahl zurück. Andere Verwendung lässt sich in der Intention frei benennen. Die Absicht bleibt offen.
+
+**Verwendung filtern** mit der bisherigen Sortierung kombinieren, Highlights auswählen, Anzahl und IDs prüfen und **Verarbeitung beginnen** wählen. Jede Session ist ein fester Teilbatch mit Quellen-, Vortriage- und Vorlagensnapshot. Änderungen an der Inbox verändern ihn nicht. Leere Auswahl startet keine Session.
+
+Ohne Vorauswahl führt der Prompt zuerst durch alle vollständigen Highlights, ohne externe Writes während der Triage. Danach Feynman-Aufnahmen bündeln und andere Verwendungen in ursprünglicher Reihenfolge ausarbeiten. Ein reiner Feynman-Batch bereitet direkt die gemeinsame Aufnahme vor: kein Nachweis des Lernens, keine erzwungene Erklärung und keine automatische Anki-Erstellung. Ziele und Write-Aufträge bleiben im externen Chat zu klären. Eigene Vorlagen bleiben erhalten; der ergänzte Batch-Ablauf präzisiert die Triage.
+
+**Highlight verwerfen …** erfordert Bestätigung und bewahrt Quelle, Intention, Zeitpunkt und App-Herkunft im Verlauf. Dort ist **Bewusst wieder aufgreifen** möglich; auch diese Wiederaufnahme wird protokolliert. Noch offene Sessions können unter Quellen & bisherige Zuordnungen ebenfalls ein Highlight verwerfen. Ein verspätetes Handoff erfordert dann eine zusätzliche Bestätigung: aktuelle App-Entscheidungen bleiben bestehen, alte Ergebnisse werden nur historisch dokumentiert. Veraltete Anki-Payloads sind hierbei gesperrt.
+
+Vor dem Update ein JSON-Backup exportieren und **alle Geräte auf 2.2.0 aktualisieren**, bevor derselbe Gist verwendet wird. App-Tabs schließen und nach dem Update neu öffnen; links unten v2.2.0 prüfen. Alte Daten werden ergänzt; Handoffs 2.0 und 2.1 bleiben lesbar. Keine neue Notion-Anbindung.
+
+Lokale Verifikation und der ausdrücklich noch offene reale Gerätetest: [Sprint-Abnahme](docs/TRIAGE.md).
+
+# Bisheriger Stand 2.1.1
 
 Readwise-Highlights auswählen, im Chat bewusst verwenden und ihre **initiale Verarbeitung** dokumentieren. Die Workbench plant keine Lernwiederholungen. Ein in die Lernsammlung übergebenes Highlight kann bereits verarbeitet sein, ohne gelernt zu sein.
 

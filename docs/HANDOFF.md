@@ -57,3 +57,7 @@ Anki-Payload und dessen Review funktionieren wie bisher; neue freie Daten gehör
 
 Ein identischer Reimport macht nichts. Ein verändertes zweites Handoff derselben abgeschlossenen Session wird blockiert. Weitere Verwendung über „Bewusst wieder aufgreifen“ als neue Runde dokumentieren.
 
+
+## App-Vortriage ab 2.2.0
+
+`inputFor` enthält pro Highlight `triage:{use,intention}` als Absicht. Das ändert den Ergebnisvertrag nicht: mehrere tatsächliche Aktionen, freie Routen und Zusatzfelder bleiben möglich. Jede Session ist ein eigener fester Teilbatch. Ein Generationskonflikt durch spätere App-Entscheidungen erfordert bewusste Auflösung; Details in [TRIAGE.md](TRIAGE.md). Vortriage bedeutet weder verarbeitet noch gelernt.

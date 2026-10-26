@@ -81,7 +81,7 @@ async function configure(p,first){await nav(p,'Einstellungen');await p.getByLabe
  await pa.locator('summary').filter({hasText:'Notion / flexibel · ohne AnkiConnect'}).click();
  await pa.screenshot({path:path.join(outDir,'desktop-templates.png'),fullPage:true});
  await nav(pa,'Verlauf');await pa.getByRole('button',{name:'Bewusst wieder aufgreifen',exact:true}).last().click();await confirm(pa);
- assert.equal(await pa.evaluate(()=>processingLog().length),2);
+ assert.equal(await pa.evaluate(()=>processingLog().length),3);
  await nav(pa,'Eingang');await pa.getByLabel('Workflow für neue Session').selectOption('notion');
  await pa.getByRole('button',{name:'1',exact:true}).click();await pa.getByRole('button',{name:'Verarbeitung beginnen →',exact:true}).click();await idle(pa);
  const notionSession=await pa.evaluate(()=>S.sessions.at(-1).id);
@@ -104,17 +104,17 @@ async function configure(p,first){await nav(p,'Einstellungen');await p.getByLabe
  await pb.getByRole('button',{name:'Prüfen & übernehmen',exact:true}).click();await confirm(pb);
  assert.equal(await pb.evaluate(()=>sessionDone(S.sessions.find(s=>s.workflow.id==='notion'))),true);assert.equal(api.adds,1);
  await nav(pb,'Verlauf');assert.match(await pb.locator('#app').innerText(),/Sprintnotiz ergänzt/);
- assert.equal(await pb.evaluate(()=>processingLog().length),3);
+ assert.equal(await pb.evaluate(()=>processingLog().length),4);
  assert.equal(await pb.evaluate(()=>document.documentElement.scrollWidth<=390),true);
  await pb.screenshot({path:path.join(outDir,'mobile-flexible-log.png'),fullPage:true});
  const downloaded=pb.waitForEvent('download');await pb.getByRole('button',{name:'Protokoll als JSON exportieren',exact:true}).click();const download=await downloaded;await download.saveAs(path.join(outDir,'processing-log.json'));
  const log=JSON.parse(fs.readFileSync(path.join(outDir,'processing-log.json')));
- assert.equal(log.events.length,3);assert.deepEqual(log.events.find(e=>e.session_id===notionSession).handoff_context.extra,flexible.extra);
- await sync(pb);await sync(pa);assert.equal(await pa.evaluate(()=>processingLog().length),3);
+ assert.equal(log.events.length,4);assert.deepEqual(log.events.find(e=>e.session_id===notionSession).handoff_context.extra,flexible.extra);
+ await sync(pb);await sync(pa);assert.equal(await pa.evaluate(()=>processingLog().length),4);
  const current=await pa.evaluate(()=>JSON.parse(JSON.stringify(S)));
  const c=await browser.newContext();await intercept(c,origin);const pc=await c.newPage();pc.on('pageerror',e=>errors.push(e.message));
  // Seed a real old-shaped IndexedDB state and reload through production migration.
- const legacy=JSON.parse(JSON.stringify(current));delete legacy.workflows;legacy.sessions=legacy.sessions.filter(s=>s.workflow.id==='anki');legacy.sessions.forEach(s=>{delete s.workflow;delete s.handoff_imported_at;});legacy.candidates.forEach(x=>{x.generation=0;});
+ const legacy=JSON.parse(JSON.stringify(current));delete legacy.workflows;legacy.sessions=legacy.sessions.filter(s=>s.workflow.id==='anki');legacy.sessions.forEach(s=>{delete s.workflow;delete s.handoff_imported_at;});legacy.candidates.forEach(x=>{x.generation=0;delete x.triage;delete x.reopen_events;});legacy.sessions.forEach(s=>s.items.forEach(i=>delete i.triage));
  await pc.goto(appUrl);await pc.getByRole('heading',{name:'Was bleibt hängen?'}).waitFor();
  await pc.evaluate(async data=>{await writeLocal(data,data);},legacy);await pc.reload();await pc.getByRole('heading',{name:'Was bleibt hängen?'}).waitFor();
  assert.equal(await pc.evaluate(()=>S.sessions[0].workflow.id),'anki');assert.equal(await pc.evaluate(()=>S.sessions[0].handoff_imported_at),null);assert.equal(await pc.evaluate(()=>allCards()[0].note_id),api.notes[0].noteId);
