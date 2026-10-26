@@ -1,4 +1,4 @@
-# Sprint Vortriage · 2.2.0
+# Sprint Vortriage · 2.2.1
 
 ## Implementierte Feature-Pfade
 
@@ -6,11 +6,17 @@
 |---|---|
 | f_itrix99b | Optionale primäre Verwendung und Intention pro Readwise-ID; editierbar und löschbar, kein Abschlussstatus |
 | f_p89ta690 | Alle offenen, unentschieden und fünf Verwendungsfilter; bestehende Suche/Sortierung, explizite Auswahl mit Anzahl/IDs, unveränderliche Sessionquellen und Vortriage |
-| f_7z60cank | Bestätigtes App-Verwerfen über reguläre geschlossene Session; dauerhaftes Handoff-Protokoll, Wiederöffnen mit eigenem Ereignis |
+| f_7z60cank | Direktes App-Verwerfen ohne Popup über reguläre geschlossene Session; dauerhaftes Handoff-Protokoll, Wiederöffnen mit eigenem Ereignis |
 | f_yv6htpkt | Handoff gegen konkrete Session-IDs, beliebige tatsächliche Aktionen bleiben möglich; idempotenter Import; Generationskonflikt vor Übernahme sichtbar |
-| f_cytkzdkw | Dieselben Vortriagefelder mobil und am Desktop; Textarea ohne zusätzliche Längenbegrenzung, Speichern vor Batch und Sync |
+| f_cytkzdkw | Direkt sichtbare Schnellaktionen mobil und am Desktop; Textarea ohne zusätzliche Längenbegrenzung, Verwendung speichert die Notiz mit |
 
 Dies beschreibt implementierte und lokal geprüfte Pfade, keine vollständige reale Nutzerabnahme.
+
+## Bedienung ab 2.2.1
+
+Verwendungsbuttons sind direkt sichtbar und speichern sofort. „Unentschieden“ entfernt die geplante Verwendung. Eine eingegebene Intention wird beim Klick mitgespeichert; alternativ gibt es „Notiz speichern“. „Verwerfen“ übernimmt ebenfalls die aktuelle Intention und benötigt keinen Dialog. Speicherfehler erhalten den bisherigen State und den Notizentwurf.
+
+„Verworfene anzeigen“ steht oben im Eingang und wird gerätelokal mit der Ansicht gespeichert. Verworfene Treffer folgen weiter Suche, Verwendungfilter und Sortierung, sind aber für die Batchauswahl gesperrt. „Wieder öffnen“ holt sie ohne Popup zurück; ihre bisherigen Protokolleinträge bleiben erhalten. Die Bestätigung für Handoff-Konflikte bleibt bestehen.
 
 ## Tatsächliche Datenverträge
 
@@ -25,7 +31,7 @@ Jede Sessionquelle enthält zusätzlich den eingefrorenen `triage`-Wert. Vorlage
 
 Handoff-Typ und Versionen bleiben unverändert: `readwise-workbench-handoff-v2`, 2.0/2.1. Jede Session verlangt genau ihre ID-Menge; keine Inbox-weite Bilanz. `route`, zusätzliche Felder, mehrere Aktionen und Artefakte bleiben frei. Im Notion-Workflow bleibt `anki:null`.
 
-App-Verwerfen erzeugt ein reguläres Handoff mit `outcome:discarded`, `route:discard`, `decision_origin:app`, tatsächlichem Entscheidungszeitpunkt und gespeicherter Intention in `notes`. Kein externer Write. Wenn bereits eine Session zur aktuellen Generation existiert, beginnt die App-Entscheidung eine neue Generation. Damit kann ein verspäteter Import die aktuelle Entscheidung nicht ersetzen. Bei Konflikt kann der Nutzer abbrechen oder die alte Bilanz ausdrücklich nur historisch importieren. Enthält der Konfliktbatch Anki-Payloads, bleibt der Import gesperrt; er darf keine alten Karten zum Schreiben einreihen. Für eine neue aktuelle Verarbeitung erst wieder öffnen und einen neuen Batch verwenden.
+Direktes App-Verwerfen erzeugt ein reguläres Handoff mit `outcome:discarded`, `route:discard`, `decision_origin:app`, tatsächlichem Entscheidungszeitpunkt und gespeicherter Intention in `notes`. Kein externer Write. Wenn bereits eine Session zur aktuellen Generation existiert, beginnt die App-Entscheidung eine neue Generation. Damit kann ein verspäteter Import die aktuelle Entscheidung nicht ersetzen. Bei Konflikt kann der Nutzer abbrechen oder die alte Bilanz ausdrücklich nur historisch importieren. Enthält der Konfliktbatch Anki-Payloads, bleibt der Import gesperrt; er darf keine alten Karten zum Schreiben einreihen. Für eine neue aktuelle Verarbeitung erst wieder öffnen und einen neuen Batch verwenden.
 
 `processingLog` leitet Abschlüsse weiterhin aus Handoffs ab und ergänzt Wiederaufnahmeereignisse aus `reopen_events` (`result.event_kind:reopened`, `outcome:reopened`, keine Verarbeitung). Protokoll und Export enthalten auch Vorauswahl und freie Handoff-Felder. Neue Kandidatenmetadaten reisen im bestehenden manuellen AES-GCM-Gist mit. Der Dreiwege-Merge bleibt atomar je Kandidat bzw. Session; konkurrierende Vortriage am selben Kandidaten erzeugt einen Konflikt, keine stille Feldzusammenführung. Kein Auto-Sync, keine neue Cloud oder Notion-API.
 
@@ -57,3 +63,7 @@ Diese Tests simulieren Geräte und Dienste lokal. Sie belegen weder echten Gerä
 6. Zurück über bestehenden Sync nach A; Verlauf, offene Restmenge und Wiederöffnen prüfen. Bei Bedarf Konfliktfall mit einem synthetischen Highlight separat abnehmen.
 
 Gerät B und reale externe Aktionen standen hier nicht zur Verfügung. Dieser Ablauf ist vorbereitet, nicht durchgeführt. Safari/iOS, Firefox, persönliche Notion-Ziele und tatsächliches Chatverhalten bleiben offen. Es gibt keine privaten Standardziele und keine Kenntnis früherer Chats oder der in alten Dokumenten erwähnten, hier nicht vorhandenen externen Projektregeln.
+
+## Nachprüfung 2.2.1
+
+56 Node-Tests bestanden. Der aktualisierte mobile Chromium-Test prüft Verwendung und Verwerfen ohne Dialog, Mitnahme der Intention, gespeicherte Checkbox nach Reload, deaktivierte Batchauswahl verworfener Treffer und direktes Wiederöffnen mit erhaltener Geschichte. Der bestehende Browserablauf bleibt unverändert als Regression aktiv. Es wurden keine produktiven Dienste beschrieben. Der oben dokumentierte reale A/B-Test bleibt offen; Verwerfen erfolgt jetzt ohne Bestätigung.

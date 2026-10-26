@@ -67,3 +67,7 @@ Playwright wird nur zur Entwicklung benötigt. Die ausgelieferte PWA selbst hat 
 ## Neuer Stand 2.2.0
 
 Die obigen Ergebnisse bleiben als historischer Stand erhalten. Für den Sprint Vortriage wurden 55 Node-Tests sowie der bestehende und ein zusätzlicher mobiler Chromium-Integrationstest ausgeführt. Neue Befehle, Ergebnisse und offene reale Abnahme: [TRIAGE.md](TRIAGE.md). Die Browserprüfung für 2.2.0 wurde mit Chromium 154.0.8037.57 durchgeführt, externe Dienste ausschließlich simuliert.
+
+## Bedienungsvereinfachung 2.2.1
+
+56 Node-Tests sowie beide Chromium-Suiten bestanden. Verwendungen und Verwerfen werden per sichtbarer Schnellaktion gespeichert. Der mobile Test prüft ausdrücklich das Ausbleiben von Dialogen, die gespeicherte Option „Verworfene anzeigen“, den Batchausschluss und direktes Wiederöffnen. Reale Geräteabnahme bleibt offen.
