@@ -30,9 +30,14 @@ test('confirmed app discard, conflict and reopen preserve both historical and cu
  a.S=a.applyHandoff(a.S,s.id,h,true).state;assert.equal(a.candidateStatus(a.S.candidates[0]),'discarded');assert.equal(a.processingLog().length,2);assert.equal(a.processingLog().find(e=>e.result.outcome==='discarded').result.notes,'Ich möchte das nicht weiter verfolgen.');
  await a.resurface('101');assert.equal(a.candidateStatus(a.S.candidates[0]),'resurfaced');assert.equal(a.processingLog().length,3);assert.equal(a.processingLog().filter(e=>e.result.event_kind==='reopened').length,1);assert.equal(a.applyHandoff(a.S,s.id,h).noop,true);
 });
-test('cancel discard does nothing; historical Anki import cannot queue stale writes',async()=>{
- const a=app();seed(a);a.ask=async()=>false;const before=json(a.S);await a.discardCandidate('101');assert.deepEqual(json(a.S),before);
+test('quick discard preserves draft intention without a dialog; historical Anki remains blocked',async()=>{
+ const a=app();seed(a);a.ask=async()=>{throw Error('No confirmation expected');};a.DRAFTS['triage.101.intention']='Ich brauche es nicht.';await a.discardCandidate('101');assert.equal(a.candidateStatus(a.S.candidates[0]),'discarded');assert.equal(a.processingLog()[0].result.notes,'Ich brauche es nicht.');assert.equal(Object.keys(a.DRAFTS).length,0);
+ a.UI.showDiscarded=true;assert.equal(a.visibleInbox().length,1);assert.equal(a.filteredInbox().length,0);a.pick(5);assert.equal(a.UI.selected.length,0);await a.resurface('101',true);assert.equal(a.eligible().length,1);assert.equal(a.processingLog().length,2);
  const s=session(a);a.S=a.discardState(a.S,'101');assert.throws(()=>a.applyHandoff(a.S,s.id,handoff(a,s),true),/Anki-Payload blockiert/);assert.equal(a.allCards().length,0);
+});
+test('quick use saves the note too, supports clearing, and retains drafts on storage failure',async()=>{
+ const a=app();seed(a);a.DRAFTS['triage.101.intention']='Ich möchte es aufnehmen.';await a.quickUse('101','feynman');assert.equal(a.S.candidates[0].triage.use,'feynman');assert.equal(a.S.candidates[0].triage.intention,'Ich möchte es aufnehmen.');await a.quickUse('101','');assert.equal(a.S.candidates[0].triage.use,'');
+ const before=json(a.S);a.DRAFTS['triage.101.intention']='Noch nicht gespeichert';a.writeLocal=async()=>{throw Error('Storage unavailable');};a.run=async(_,fn)=>fn();await assert.rejects(a.quickUse('101','other'),/Storage unavailable/);assert.deepEqual(json(a.S),before);assert.equal(a.DRAFTS['triage.101.intention'],'Noch nicht gespeichert');
 });
 test('triage and audit metadata survive encryption; concurrent edits use existing candidate conflict',async()=>{
  const a=app();seed(a);const base=json(a.S),local=a.setTriage(base,'101',{use:'feynman',intention:'Ich nehme es auf.'}),remote=a.setTriage(base,'101',{use:'other',intention:'Ich verwende es im Sprint.'});
