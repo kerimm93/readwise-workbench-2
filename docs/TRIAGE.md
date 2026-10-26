@@ -67,3 +67,15 @@ Gerät B und reale externe Aktionen standen hier nicht zur Verfügung. Dieser Ab
 ## Nachprüfung 2.2.1
 
 56 Node-Tests bestanden. Der aktualisierte mobile Chromium-Test prüft Verwendung und Verwerfen ohne Dialog, Mitnahme der Intention, gespeicherte Checkbox nach Reload, deaktivierte Batchauswahl verworfener Treffer und direktes Wiederöffnen mit erhaltener Geschichte. Der bestehende Browserablauf bleibt unverändert als Regression aktiv. Es wurden keine produktiven Dienste beschrieben. Der oben dokumentierte reale A/B-Test bleibt offen; Verwerfen erfolgt jetzt ohne Bestätigung.
+
+## Quellenansicht ab 2.3.0
+
+Der Button oben rechts am Highlight aktiviert `UI.sourceFilter:{key,title}` und wechselt zur Inbox. Er setzt Suchtext und Verwendungfilter zurück und bezieht Vertagte/Fehler ein, damit nicht versehentlich nur der bisherige Ausschnitt einer Quelle sichtbar bleibt. Die Ansicht zeigt auch bereits laufende und abgeschlossene Kandidaten, jedoch ohne Auswahl oder erneute Triageaktionen. Verworfene bleiben von der Checkbox abhängig. Weitere Suche, Verwendungfilter und Sortierung lassen sich innerhalb dieser Quelle verwenden. „Alle Quellen anzeigen“ entfernt den Quellenfilter und die Auswahl.
+
+Identität: zuerst `source.readwise_book_id` (Readwise-Quellen-ID, nicht Highlight-ID), ersatzweise `reader_document_id`, dann die genaue gültige `source_url`. Wenn alles fehlt, bleibt die Zuordnung auf die einzelne Highlight-ID beschränkt. Titel und Autoren sind keine Identitätsmerkmale. Die App kann nur vorhandene Kandidaten anzeigen; kein automatischer Vollimport oder neuer API-Aufruf.
+
+`sourceFilter` ist gerätelokale UI-Einstellung, Teil von `saveUi`, kein Sync- oder State-Schemafeld. Batchquellen und Handoff-Verträge bleiben unverändert. Schnellauswahl und Sammelaktionen prüfen die tatsächlich gefilterte offene Menge. Das bestehende Limit von 30 Highlights je Auswahl/Batch bleibt bestehen; große Quellen in mehreren Gruppen bearbeiten.
+
+Sammelaktionen übernehmen die gewählte Verwendung oder verwerfen die Auswahl über die bisherigen Kandidaten- und Protokollmechanismen. Individuelle gespeicherte bzw. noch eingegebene Intentionen bleiben erhalten. Erst ein gemeinsamer erfolgreicher Commit übernimmt die gesamte Änderung; ein Speicherfehler lässt State, Auswahl und Entwürfe bestehen. Abgeschlossene und laufende Highlights werden nicht umgeschrieben. Verworfene Highlights bleiben wieder öffnbar.
+
+Lokale Verifikation: 60 Node-Tests bestanden; neue Fälle prüfen stabile Quellenidentität trotz gleichnamiger bzw. umbenannter Titel, fehlende IDs, Suchkombination, Auswahlgrenzen, geschützte Status, atomare Speicherung und feste Sessionsnapshots. Der mobile Chromium-Test prüft den tatsächlichen Quellenbutton, Reload, Sammelverwendung Feynman und Prosa, Verwerfen und Wiederöffnen sowie Zurücknavigation ohne horizontalen Überlauf bei 390px. Bestehender Browserablauf ebenfalls geprüft. Externe Dienste ausschließlich simuliert; echte Geräte- und Kontenabnahme bleibt offen.
